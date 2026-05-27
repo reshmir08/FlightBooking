@@ -1,0 +1,253 @@
+package com.example.flightbooking.data.models
+
+/**
+ * Airport navigation and terminal map data models
+ */
+
+/**
+ * Airport terminal information
+ */
+data class Terminal(
+    val id: String,
+    val name: String,
+    val airport: Airport,
+    val gates: List<Gate>,
+    val amenities: List<Amenity>,
+    val mapData: TerminalMapData? = null
+)
+
+/**
+ * Gate information
+ */
+data class Gate(
+    val id: String,
+    val number: String,
+    val terminal: String,
+    val position: Position,
+    val status: GateStatus = GateStatus.AVAILABLE,
+    val currentFlight: String? = null,
+    val boardingTime: String? = null
+)
+
+/**
+ * Gate status
+ */
+enum class GateStatus {
+    AVAILABLE,
+    BOARDING,
+    DEPARTED,
+    DELAYED,
+    CANCELLED,
+    MAINTENANCE
+}
+
+/**
+ * Position coordinates within terminal
+ */
+data class Position(
+    val x: Float,
+    val y: Float,
+    val floor: Int = 1
+) {
+    fun distanceTo(other: Position): Float {
+        if (floor != other.floor) return Float.MAX_VALUE
+        val dx = x - other.x
+        val dy = y - other.y
+        return kotlin.math.sqrt(dx * dx + dy * dy)
+    }
+}
+
+/**
+ * Amenity types
+ */
+enum class AmenityType {
+    RESTROOM,
+    FOOD_COURT,
+    RESTAURANT,
+    CAFE,
+    COFFEE_SHOP,
+    LOUNGE,
+    CHARGING_STATION,
+    ATM,
+    CURRENCY_EXCHANGE,
+    DUTY_FREE,
+    PHARMACY,
+    MEDICAL_CENTER,
+    INFORMATION_DESK,
+    BAGGAGE_CLAIM,
+    CHECK_IN,
+    SECURITY,
+    CUSTOMS,
+    PRAYER_ROOM,
+    NURSING_ROOM,
+    PLAY_AREA,
+    WIFI_ZONE,
+    SMOKING_AREA,
+    ELEVATOR,
+    ESCALATOR,
+    STAIRS,
+    MOVING_WALKWAY
+}
+
+/**
+ * Amenity information
+ */
+data class Amenity(
+    val id: String,
+    val name: String,
+    val type: AmenityType,
+    val position: Position,
+    val terminal: String,
+    val description: String = "",
+    val isAccessible: Boolean = true,
+    val isOpen: Boolean = true,
+    val openingHours: String? = null,
+    val rating: Float = 0f,
+    val imageUrl: String? = null,
+    val additionalInfo: Map<String, String> = emptyMap()
+)
+
+/**
+ * Terminal map SVG data
+ */
+data class TerminalMapData(
+    val svgPath: String,
+    val width: Float,
+    val height: Float,
+    val scale: Float = 1.0f,
+    val layers: List<MapLayer> = emptyList()
+)
+
+/**
+ * Map layer for different floor levels
+ */
+data class MapLayer(
+    val floor: Int,
+    val name: String,
+    val svgData: String,
+    val isVisible: Boolean = true
+)
+
+/**
+ * Navigation route
+ */
+data class NavigationRoute(
+    val start: Position,
+    val end: Position,
+    val waypoints: List<Position>,
+    val distance: Float,
+    val estimatedTime: Int, // minutes
+    val instructions: List<NavigationInstruction>
+)
+
+/**
+ * Navigation instruction
+ */
+data class NavigationInstruction(
+    val step: Int,
+    val instruction: String,
+    val position: Position,
+    val distance: Float,
+    val icon: NavigationIcon
+)
+
+/**
+ * Navigation icons
+ */
+enum class NavigationIcon {
+    STRAIGHT,
+    TURN_LEFT,
+    TURN_RIGHT,
+    TURN_SLIGHT_LEFT,
+    TURN_SLIGHT_RIGHT,
+    STAIRS_UP,
+    STAIRS_DOWN,
+    ELEVATOR,
+    ESCALATOR_UP,
+    ESCALATOR_DOWN,
+    DESTINATION
+}
+
+/**
+ * User location within terminal
+ */
+data class UserLocation(
+    val position: Position,
+    val terminal: String,
+    val nearestGate: Gate? = null,
+    val nearestAmenities: List<Amenity> = emptyList(),
+    val timestamp: Long = System.currentTimeMillis()
+)
+
+/**
+ * Search filters for amenities
+ */
+data class AmenityFilters(
+    val types: Set<AmenityType> = emptySet(),
+    val accessibleOnly: Boolean = false,
+    val openNow: Boolean = false,
+    val maxDistance: Float? = null,
+    val minRating: Float? = null
+)
+
+/**
+ * Airport navigation state
+ */
+data class AirportNavigationState(
+    val currentTerminal: Terminal? = null,
+    val userLocation: UserLocation? = null,
+    val selectedGate: Gate? = null,
+    val selectedAmenity: Amenity? = null,
+    val navigationRoute: NavigationRoute? = null,
+    val amenities: List<Amenity> = emptyList(),
+    val filters: AmenityFilters = AmenityFilters(),
+    val searchQuery: String = "",
+    val isNavigating: Boolean = false,
+    val showAccessibilityFeatures: Boolean = false,
+    val mapZoom: Float = 1.0f,
+    val mapOffset: Pair<Float, Float> = Pair(0f, 0f),
+    // Additional properties for UI state management
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val allAmenities: List<Amenity> = emptyList(),
+    val filteredAmenities: List<Amenity> = emptyList(),
+    val selectedAmenityType: AmenityType? = null,
+    val currentLocation: Position? = null,
+    val destination: Position? = null,
+    val destinationName: String = "",
+    val distanceToDestination: DistanceInfo? = null,
+    val amenityDistances: Map<Amenity, DistanceInfo> = emptyMap(),
+    val is3DView: Boolean = false
+)
+
+/**
+ * Distance calculation result
+ */
+data class DistanceInfo(
+    val distance: Float, // meters
+    val walkingTime: Int, // minutes
+    val formattedDistance: String
+) {
+    // Helper properties for backward compatibility
+    val meters: Float get() = distance
+    val walkingTimeMinutes: Int get() = walkingTime
+    
+    companion object {
+        fun calculate(from: Position, to: Position): DistanceInfo {
+            val distanceMeters = from.distanceTo(to)
+            val walkingSpeed = 1.4f // meters per second (average walking speed)
+            val timeSeconds = (distanceMeters / walkingSpeed).toInt()
+            val timeMinutes = (timeSeconds / 60).coerceAtLeast(1)
+            
+            val formatted = when {
+                distanceMeters < 100 -> "${distanceMeters.toInt()}m"
+                distanceMeters < 1000 -> "${(distanceMeters / 10).toInt() * 10}m"
+                else -> "${"%.1f".format(distanceMeters / 1000)}km"
+            }
+            
+            return DistanceInfo(distanceMeters, timeMinutes, formatted)
+        }
+    }
+}
+
+// Made with Bob

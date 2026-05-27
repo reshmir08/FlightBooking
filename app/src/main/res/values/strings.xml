@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Flight Booking</string>
+    <string name="book">Book</string>
+    <string name="round_trip">Round-trip</string>
+    <string name="one_way">One-way</string>
+    <string name="multi_city">Multi-city</string>
+    <string name="departure">Departure</string>
+    <string name="arrival">Arrival</string>
+    <string name="select_dates">Select dates</string>
+    <string name="passengers">Passengers</string>
+    <string name="cabin">Cabin</string>
+    <string name="economy">Economy</string>
+    <string name="business">Business</string>
+    <string name="first_class">First Class</string>
+    <string name="use_aeroplan_points">Use my Aeroplan points</string>
+    <string name="apply_promotion_code">Apply promotion code</string>
+    <string name="book_hotels_cars_vacations">Book hotels, cars and vacations</string>
+    <string name="recent_searches">Recent searches</string>
+    <string name="home">Home</string>
+    <string name="flight_status">Flight status</string>
+    <string name="trips">Trips</string>
+    <string name="aeroplan">Aeroplan</string>
+    <string name="travel_advisory">If you\'re travelling to, from, or through Montego Bay (MBJ) or Kingston (KIN), Jamaica, we…</string>
+    <string name="read_more">Read more</string>
+    <string name="swap_locations">Swap locations</string>
+</resources>
+
+    <!-- Made with Bob -->
