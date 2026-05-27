@@ -1,6 +1,6 @@
 # Flight Booking App
 
-A modern Android flight booking application built with Jetpack Compose, inspired by Air Canada's mobile app design.
+A modern Android flight booking application built with Jetpack Compose.
 
 ## 📱 Features
 
