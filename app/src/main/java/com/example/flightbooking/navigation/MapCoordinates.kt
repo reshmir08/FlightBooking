@@ -42,14 +42,13 @@ object MapCoordinates {
     // ── Base scale ────────────────────────────────────────────────────────────
 
     /**
-     * Compute the scale factor that fits the entire terminal into [canvasSize]
-     * at zoom = 1.0, leaving a 10 % margin on all sides.
+     * Compute the scale factor that fits the entire terminal exactly into [canvasSize]
+     * horizontally at zoom = 1.0. No built-in margin — visual padding is applied by the
+     * caller via Modifier.padding() on the map Box (currently 5.dp each side).
      */
     fun computeBaseScale(canvasSize: Size): Float {
         if (canvasSize.width == 0f || canvasSize.height == 0f) return 1f
-        val sx = canvasSize.width  / MAP_WIDTH
-        val sy = canvasSize.height / MAP_HEIGHT
-        return minOf(sx, sy) * 0.90f
+        return canvasSize.width / MAP_WIDTH
     }
 
     // ── Logical → Canvas conversion ───────────────────────────────────────────

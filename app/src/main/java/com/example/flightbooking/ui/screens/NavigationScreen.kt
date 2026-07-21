@@ -25,7 +25,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.flightbooking.R
 import com.example.flightbooking.data.models.AirportNavigationState
 import com.example.flightbooking.data.models.FloorPlan
-import com.example.flightbooking.ui.map.FloorSelector
 import com.example.flightbooking.ui.map.IndoorMapView
 import com.example.flightbooking.viewmodel.AirportNavigationViewModel
 import kotlinx.coroutines.delay
@@ -46,8 +45,7 @@ import kotlinx.coroutines.delay
  *  │   ├─ PoiMarkersOverlay                   │
  *  │   └─ UserLocationMarker                  │
  *  │                                          │
- *  │         FloorSelector (right edge)       │
- *  │  DemoFAB  (bottom-left)                  │
+ *  │  DemoWalkFAB  (bottom-left)              │
  *  │                         Re-centre FAB    │
  *  │  NavigationHud — bottom info bar         │
  *  └──────────────────────────────────────────┘
@@ -78,15 +76,6 @@ fun NavigationScreen(
 
     // ── Bottom sheet state ─────────────────────────────────────────────────────
     var showStepsSheet by remember { mutableStateOf(false) }
-
-    // ── Available floors ───────────────────────────────────────────────────────
-    val availableFloors = remember(state.currentTerminal) {
-        state.currentTerminal?.gates
-            ?.map { it.position.floor }
-            ?.distinct()
-            ?.sorted()
-            ?: listOf(1)
-    }
 
     // ── No-route fallback ──────────────────────────────────────────────────────
     if (state.navigationRoute == null) {
@@ -169,7 +158,8 @@ fun NavigationScreen(
             // ── Row 2: Map + overlays ─────────────────────────────────────────
             Box(modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f)          // takes all space between card and bottom bar
+                .weight(1f)
+                .padding(top = 30.dp, start = 5.dp, end = 5.dp)
             ) {
                 IndoorMapView(
                     state               = state,
@@ -181,19 +171,8 @@ fun NavigationScreen(
                     modifier            = Modifier.fillMaxSize()
                 )
 
-                // Floor selector — right edge, vertically centred within the map
-                FloorSelector(
-                    floors          = availableFloors,
-                    currentFloor    = state.visibleFloor,
-                    userFloor       = state.currentLocation?.floor ?: 1,
-                    onFloorSelected = { viewModel.setVisibleFloor(it) },
-                    modifier        = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
-                )
-
-                // Demo FAB — bottom-left corner of the map
-                SmallFloatingActionButton(
+                // Demo Walk button — bottom-left corner of the map
+                ExtendedFloatingActionButton(
                     onClick = {
                         if (state.isDemoRunning) viewModel.stopDemo()
                         else viewModel.startDemo()
@@ -204,19 +183,27 @@ fun NavigationScreen(
                     containerColor = if (state.isDemoRunning)
                         MaterialTheme.colorScheme.errorContainer
                     else
-                        MaterialTheme.colorScheme.secondaryContainer,
+                        MaterialTheme.colorScheme.tertiaryContainer,
                     contentColor = if (state.isDemoRunning)
                         MaterialTheme.colorScheme.onErrorContainer
                     else
-                        MaterialTheme.colorScheme.onSecondaryContainer
-                ) {
-                    Icon(
-                        painter = painterResource(
-                            id = if (state.isDemoRunning) R.drawable.ic_star else R.drawable.ic_flight
-                        ),
-                        contentDescription = if (state.isDemoRunning) "Stop demo" else "Walk demo"
-                    )
-                }
+                        MaterialTheme.colorScheme.onTertiaryContainer,
+                    icon = {
+                        Icon(
+                            painter = painterResource(
+                                if (state.isDemoRunning) R.drawable.ic_stop
+                                else R.drawable.ic_play_arrow
+                            ),
+                            contentDescription = null
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = if (state.isDemoRunning) "Stop Demo" else "Demo Walk",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                )
             }
 
             // ── Row 3: Bottom info bar ────────────────────────────────────────
@@ -501,11 +488,11 @@ private fun BottomInfoBar(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                // Walking time — formatted as "< 1 min" or "X min walk"
+                // Walking time — use formattedTime which is kept live by setCurrentLocation
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val walkMins = state.distanceToDestination?.walkingTime ?: 0
                     Text(
-                        text = if (walkMins < 1) "< 1 min" else "$walkMins min walk",
+                        text       = state.distanceToDestination?.formattedTime
+                            ?.ifEmpty { "< 1 min" } ?: "< 1 min",
                         style      = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color      = MaterialTheme.colorScheme.primary
@@ -517,14 +504,6 @@ private fun BottomInfoBar(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                // Floor indicator chip
-                AssistChip(
-                    onClick = {},
-                    label   = { Text("Floor ${state.visibleFloor}") },
-                    colors  = AssistChipDefaults.assistChipColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
-                )
                 // Mute — volume icon
                 IconButton(onClick = onMuteToggle) {
                     Icon(

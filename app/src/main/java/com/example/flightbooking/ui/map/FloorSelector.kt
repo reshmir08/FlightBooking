@@ -39,7 +39,7 @@ fun FloorSelector(
     onFloorSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (floors.isEmpty()) return
+    if (floors.size <= 1) return
 
     Column(
         modifier = modifier

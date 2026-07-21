@@ -136,12 +136,29 @@ class VoiceNavigationEngine(
             // If this IS the destination step, announce arrival now (user is physically here).
             if (currentStep.icon == NavigationIcon.DESTINATION && !destinationAnnounced) {
                 messages += announceArrival()
-                currentStepIndex++ // mark complete so onLocationUpdate stops processing
+                currentStepIndex++
                 return messages
             }
-            // Otherwise advance to the next step and announce it.
-            val advanceMessages = advanceStep(position)
-            messages += advanceMessages
+
+            // For a TURN step: announce "Turn left now." / "Turn right now." at the exact
+            // moment the user reaches the corner, then advance to the next step.
+            if (currentStep.icon == NavigationIcon.TURN_LEFT ||
+                currentStep.icon == NavigationIcon.TURN_RIGHT ||
+                currentStep.icon == NavigationIcon.TURN_SLIGHT_LEFT ||
+                currentStep.icon == NavigationIcon.TURN_SLIGHT_RIGHT
+            ) {
+                val turnNow = when (currentStep.icon) {
+                    NavigationIcon.TURN_LEFT         -> "Turn left now."
+                    NavigationIcon.TURN_RIGHT        -> "Turn right now."
+                    NavigationIcon.TURN_SLIGHT_LEFT  -> "Bear slightly left now."
+                    NavigationIcon.TURN_SLIGHT_RIGHT -> "Bear slightly right now."
+                    else -> ""
+                }
+                messages += turnNow
+            }
+
+            // Advance to the next step and queue its opening announcement.
+            messages += advanceStep(position)
             return messages
         }
 

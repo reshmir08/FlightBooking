@@ -261,28 +261,29 @@ data class AirportNavigationState(
  * Distance calculation result
  */
 data class DistanceInfo(
-    val distance: Float, // meters
-    val walkingTime: Int, // minutes
-    val formattedDistance: String
+    val distance: Float,           // meters
+    val walkingTime: Int,          // minutes (kept for backward compat)
+    val formattedDistance: String, // e.g. "47m", "1.2km"
+    val formattedTime: String = "" // e.g. "< 1 min", "3 min"
 ) {
-    // Helper properties for backward compatibility
     val meters: Float get() = distance
     val walkingTimeMinutes: Int get() = walkingTime
-    
+
     companion object {
         fun calculate(from: Position, to: Position): DistanceInfo {
-            val distanceMeters = from.distanceTo(to)
-            val walkingSpeed = 1.4f // meters per second (average walking speed)
-            val timeSeconds = (distanceMeters / walkingSpeed).toInt()
-            val timeMinutes = (timeSeconds / 60).coerceAtLeast(1)
-            
-            val formatted = when {
-                distanceMeters < 100 -> "${distanceMeters.toInt()}m"
-                distanceMeters < 1000 -> "${(distanceMeters / 10).toInt() * 10}m"
-                else -> "${"%.1f".format(distanceMeters / 1000)}km"
+            val distM  = from.distanceTo(to)
+            val secs   = (distM / 1.4f).toInt()
+            val mins   = secs / 60
+            val fmtDist = when {
+                distM < 1000 -> "${distM.toInt()}m"
+                else         -> "${"%.1f".format(distM / 1000)}km"
             }
-            
-            return DistanceInfo(distanceMeters, timeMinutes, formatted)
+            val fmtTime = when {
+                secs < 60  -> "< 1 min"
+                mins == 1  -> "1 min"
+                else       -> "$mins min"
+            }
+            return DistanceInfo(distM, mins, fmtDist, fmtTime)
         }
     }
 }

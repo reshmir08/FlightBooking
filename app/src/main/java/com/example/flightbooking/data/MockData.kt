@@ -208,12 +208,6 @@ object MockData {
             Gate("G19", "B9", "T1", Position(500f, 350f, 1), GateStatus.AVAILABLE),
             Gate("G20", "B10", "T1", Position(550f, 350f, 1), GateStatus.AVAILABLE),
             
-            // Terminal 1 - Gates C1-C5 (Upper Level)
-            Gate("G21", "C1", "T1", Position(200f, 200f, 2), GateStatus.BOARDING, "LH345", "17:00"),
-            Gate("G22", "C2", "T1", Position(300f, 200f, 2), GateStatus.AVAILABLE),
-            Gate("G23", "C3", "T1", Position(400f, 200f, 2), GateStatus.BOARDING, "AC678", "18:15"),
-            Gate("G24", "C4", "T1", Position(500f, 200f, 2), GateStatus.DELAYED, "UA901", "19:30"),
-            Gate("G25", "C5", "T1", Position(600f, 200f, 2), GateStatus.AVAILABLE)
         )
     }
     

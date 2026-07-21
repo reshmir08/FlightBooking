@@ -38,6 +38,13 @@ class AirportNavigationViewModel : ViewModel() {
     /** All virtual geofence zones loaded at startup. */
     private var geofenceZones: List<GeofenceZone> = emptyList()
 
+    /**
+     * Holds the start announcement text when [setDestination] is called before
+     * [initVoiceSpeaker] has run (e.g. navigated from GateFinderScreen before
+     * NavigationScreen is composed). Replayed in [initVoiceSpeaker].
+     */
+    private var pendingStartAnnouncement: String = ""
+
     // ── Demo mode ─────────────────────────────────────────────────────────────
 
     private var demoJob: Job? = null
@@ -68,6 +75,12 @@ class AirportNavigationViewModel : ViewModel() {
         }
         // Sync mute state in case it changed before the speaker was created
         voiceSpeaker?.isMuted = _navigationState.value.isMuted
+        // Replay start announcement if it was queued before TTS existed
+        if (pendingStartAnnouncement.isNotBlank()) {
+            val msg = pendingStartAnnouncement
+            pendingStartAnnouncement = ""
+            voiceSpeaker?.speak(msg, flushQueue = true)
+        }
     }
 
     /**
@@ -175,16 +188,28 @@ class AirportNavigationViewModel : ViewModel() {
         )
         updateAmenityDistances()
 
-        // Update distance to destination
+        // Update distance on every location tick — exact meters, no rounding,
+        // so the counter visibly decrements during demo walk.
         val destination = _navigationState.value.destination
         if (destination != null) {
-            val distance = calculateDistance(position, destination)
+            val distM  = calculateDistance(position, destination)
+            val secs   = (distM / 1.4).toInt()
+            val mins   = secs / 60
+            val fmtDist = when {
+                distM < 1000 -> "${distM.toInt()}m"
+                else         -> "${"%.1f".format(distM / 1000)}km"
+            }
+            val fmtTime = when {
+                secs < 60  -> "< 1 min"
+                mins == 1  -> "1 min"
+                else       -> "$mins min"
+            }
             _navigationState.value = _navigationState.value.copy(
                 distanceToDestination = DistanceInfo(
-                    distance = distance.toFloat(),
-                    walkingTime = (distance / 80).toInt(),
-                    formattedDistance = if (distance < 100) "${distance.toInt()}m"
-                    else "${(distance / 10).toInt() * 10}m"
+                    distance          = distM.toFloat(),
+                    walkingTime       = mins,
+                    formattedDistance = fmtDist,
+                    formattedTime     = fmtTime
                 )
             )
         }
@@ -227,7 +252,6 @@ class AirportNavigationViewModel : ViewModel() {
 
         if (currentLocation != null) {
             val route = calculateRoute(currentLocation, position)
-            val distance = calculateDistance(currentLocation, position)
 
             // Build the voice engine for this route, passing the destination name so
             // announcements read "Gate A6 is 20 meters ahead" instead of generic text.
@@ -242,21 +266,26 @@ class AirportNavigationViewModel : ViewModel() {
                 destinationName = name,
                 navigationRoute = route,
                 currentStepIndex = 1,   // step 0 already announced in startMsg below
-                distanceToDestination = DistanceInfo(
-                    distance = distance.toFloat(),
-                    walkingTime = (distance / 80).toInt(),
-                    formattedDistance = if (distance < 100) "${distance.toInt()}m"
-                    else "${(distance / 10).toInt() * 10}m"
+                distanceToDestination = DistanceInfo.calculate(
+                    currentLocation, position
                 )
             )
 
-            // Announce first instruction with flush so any previous speech stops immediately
-            val firstStep = route.instructions.firstOrNull()
-            val startMsg  = if (firstStep != null)
-                "Navigation started. Heading to $name. ${firstStep.instruction}"
-            else
-                "Navigation started. Heading to $name."
-            voiceSpeaker?.speak(startMsg, flushQueue = true)
+            // Build the start announcement: destination, total distance, first instruction.
+            val firstStep   = route.instructions.firstOrNull()
+            val distM       = DistanceInfo.calculate(currentLocation, position)
+            val distClause  = "${distM.formattedDistance} away. "
+            val firstClause = firstStep?.instruction ?: ""
+            val startMsg    = "Navigation started. $name is $distClause$firstClause".trim()
+
+            if (voiceSpeaker != null) {
+                // TTS already exists (user started nav while NavigationScreen was open)
+                voiceSpeaker?.speak(startMsg, flushQueue = true)
+            } else {
+                // TTS does not exist yet — NavigationScreen hasn't been composed.
+                // Store the message; initVoiceSpeaker() will replay it once TTS is ready.
+                pendingStartAnnouncement = startMsg
+            }
         } else {
             _navigationState.value = _navigationState.value.copy(
                 error = "Please set your current location first"

@@ -49,9 +49,14 @@ class VoiceSpeaker(context: Context) {
     /** Tracks the last spoken message to avoid back-to-back repetition. */
     private var lastSpokenMessage: String = ""
 
-    // Bug 6 fix: language must be set inside the OnInitListener callback.
-    // The TTS engine is async — it is not ready until the callback fires,
-    // so setting language in init{} has no effect.
+    /**
+     * Holds the most recent high-priority message that arrived before TTS was ready.
+     * Replayed immediately once [isReady] becomes true so the start announcement
+     * is never silently dropped.
+     */
+    private var pendingMessage: String = ""
+
+    // TTS init is async — language/rate/pitch must be set inside the OnInitListener.
     private lateinit var tts: TextToSpeech
 
     init {
@@ -62,6 +67,12 @@ class VoiceSpeaker(context: Context) {
                 tts.setPitch(pitch)
                 isReady = true
                 Log.d(tag, "TextToSpeech initialised successfully")
+                // Replay any message that was queued before init completed
+                if (pendingMessage.isNotBlank()) {
+                    val msg = pendingMessage
+                    pendingMessage = ""
+                    speak(msg, flushQueue = true)
+                }
             } else {
                 Log.e(tag, "TextToSpeech initialisation failed with status: $status")
             }
@@ -79,7 +90,12 @@ class VoiceSpeaker(context: Context) {
      */
     fun speak(message: String, flushQueue: Boolean = false, force: Boolean = false) {
         if (!isReady) {
-            Log.d(tag, "TTS not ready yet, skipping: $message")
+            // Buffer the message so it plays as soon as init completes.
+            // Only keep the latest flush message — older ones are stale.
+            if (flushQueue || pendingMessage.isBlank()) {
+                pendingMessage = message
+            }
+            Log.d(tag, "TTS not ready yet, buffering: $message")
             return
         }
         if (isMuted) {
