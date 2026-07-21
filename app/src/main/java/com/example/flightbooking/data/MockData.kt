@@ -302,6 +302,121 @@ object MockData {
         
         return amenities
     }
+
+    /**
+     * Sample geofence zones for Terminal 1.
+     *
+     * Zones are centred on existing mock gate/amenity positions so voice
+     * announcements fire naturally during demo mode walkthroughs.
+     */
+    fun getSampleGeofenceZones(): List<GeofenceZone> = listOf(
+
+        // ── Security checkpoints ──────────────────────────────────────────────
+        GeofenceZone(
+            id = "GF_SEC_1",
+            name = "Security Checkpoint A",
+            center = Position(300f, 250f, 1),
+            radiusMeters = 30f,
+            announcementMessage = "Security checkpoint ahead. Please have your boarding pass and ID ready.",
+            type = GeofenceZoneType.SECURITY
+        ),
+
+        // ── Gates ─────────────────────────────────────────────────────────────
+        GeofenceZone(
+            id = "GF_GATE_A1",
+            name = "Gate A1",
+            center = Position(100f, 150f, 1),
+            radiusMeters = 25f,
+            announcementMessage = "You have arrived at Gate A1.",
+            type = GeofenceZoneType.GATE
+        ),
+        GeofenceZone(
+            id = "GF_GATE_A4",
+            name = "Gate A4",
+            center = Position(250f, 150f, 1),
+            radiusMeters = 25f,
+            announcementMessage = "Gate A4 is nearby. This gate is currently delayed.",
+            type = GeofenceZoneType.GATE
+        ),
+        GeofenceZone(
+            id = "GF_GATE_A6",
+            name = "Gate A6",
+            center = Position(350f, 150f, 1),
+            radiusMeters = 25f,
+            announcementMessage = "You have arrived at Gate A6. Boarding is in progress.",
+            type = GeofenceZoneType.BOARDING
+        ),
+        GeofenceZone(
+            id = "GF_GATE_B1",
+            name = "Gate B1",
+            center = Position(100f, 350f, 1),
+            radiusMeters = 25f,
+            announcementMessage = "You have arrived at Gate B1. Boarding is in progress.",
+            type = GeofenceZoneType.BOARDING
+        ),
+        GeofenceZone(
+            id = "GF_GATE_C1",
+            name = "Gate C1 — Upper Level",
+            center = Position(200f, 200f, 2),
+            radiusMeters = 25f,
+            announcementMessage = "You have arrived at Gate C1 on the upper level.",
+            type = GeofenceZoneType.GATE
+        ),
+
+        // ── Lounges ───────────────────────────────────────────────────────────
+        GeofenceZone(
+            id = "GF_LOUNGE_1",
+            name = "Maple Leaf Lounge",
+            center = Position(250f, 200f, 1),
+            radiusMeters = 30f,
+            announcementMessage = "Maple Leaf Lounge entrance is nearby on your left.",
+            type = GeofenceZoneType.LOUNGE
+        ),
+        GeofenceZone(
+            id = "GF_LOUNGE_2",
+            name = "Air Canada Signature Suite",
+            center = Position(450f, 250f, 2),
+            radiusMeters = 30f,
+            announcementMessage = "Air Canada Signature Suite is ahead. Premium lounge for business and first class passengers.",
+            type = GeofenceZoneType.LOUNGE
+        ),
+
+        // ── Restrooms ─────────────────────────────────────────────────────────
+        GeofenceZone(
+            id = "GF_REST_A",
+            name = "Restroom — Gate A Area",
+            center = Position(80f, 180f, 1),
+            radiusMeters = 20f,
+            announcementMessage = "Restrooms are on your right.",
+            type = GeofenceZoneType.RESTROOM
+        ),
+        GeofenceZone(
+            id = "GF_REST_B",
+            name = "Restroom — Gate B Area",
+            center = Position(280f, 380f, 1),
+            radiusMeters = 20f,
+            announcementMessage = "Restrooms are nearby.",
+            type = GeofenceZoneType.RESTROOM
+        ),
+
+        // ── Food & Dining ─────────────────────────────────────────────────────
+        GeofenceZone(
+            id = "GF_FOOD_COURT",
+            name = "Food Court",
+            center = Position(200f, 300f, 1),
+            radiusMeters = 35f,
+            announcementMessage = "Food court ahead. Multiple dining options available.",
+            type = GeofenceZoneType.FOOD_COURT
+        ),
+        GeofenceZone(
+            id = "GF_CAFE_STARBUCKS",
+            name = "Starbucks",
+            center = Position(120f, 250f, 1),
+            radiusMeters = 20f,
+            announcementMessage = "Starbucks coffee shop is on your right.",
+            type = GeofenceZoneType.CUSTOM
+        )
+    )
 }
 
 // Made with Bob

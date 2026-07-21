@@ -152,6 +152,35 @@ data class NavigationInstruction(
 )
 
 /**
+ * Types of geofence zones in the airport
+ */
+enum class GeofenceZoneType {
+    SECURITY,
+    GATE,
+    LOUNGE,
+    RESTROOM,
+    FOOD_COURT,
+    BOARDING,
+    ARRIVAL,
+    CUSTOM
+}
+
+/**
+ * Virtual geofence zone around an important airport location.
+ *
+ * When the user's position enters the circle defined by [center] + [radiusMeters],
+ * [announcementMessage] is spoken once via TextToSpeech.
+ */
+data class GeofenceZone(
+    val id: String,
+    val name: String,
+    val center: Position,
+    val radiusMeters: Float,
+    val announcementMessage: String,
+    val type: GeofenceZoneType
+)
+
+/**
  * Navigation icons
  */
 enum class NavigationIcon {
@@ -217,7 +246,15 @@ data class AirportNavigationState(
     val destinationName: String = "",
     val distanceToDestination: DistanceInfo? = null,
     val amenityDistances: Map<Amenity, DistanceInfo> = emptyMap(),
-    val is3DView: Boolean = false
+    val is3DView: Boolean = false,
+    // Voice navigation state
+    val currentStepIndex: Int = 0,
+    val isMuted: Boolean = false,
+    val isDemoRunning: Boolean = false,
+    // Indoor map state
+    val mapTransform: MapTransform = MapTransform(),
+    val visibleFloor: Int = 1,
+    val userHeading: Float = 0f           // degrees, 0 = east, clockwise
 )
 
 /**

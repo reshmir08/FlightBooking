@@ -4,6 +4,17 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!--
+        Voice navigation uses Android TextToSpeech (android.speech.tts.TextToSpeech),
+        which is a built-in SDK API and requires NO additional permissions.
+
+        If real GPS location is added in the future, declare:
+            <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+            <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+        For background geofencing, also add:
+            <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    -->
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
