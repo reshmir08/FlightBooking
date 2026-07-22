@@ -194,7 +194,8 @@ enum class NavigationIcon {
     ELEVATOR,
     ESCALATOR_UP,
     ESCALATOR_DOWN,
-    DESTINATION
+    DESTINATION,
+    TURN_AROUND
 }
 
 /**

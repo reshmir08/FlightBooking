@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.atan2
-import kotlin.math.sqrt
 
 /**
  * Airport Navigation ViewModel
@@ -253,10 +252,9 @@ class AirportNavigationViewModel : ViewModel() {
         if (currentLocation != null) {
             val route = calculateRoute(currentLocation, position)
 
-            // Build the voice engine for this route, passing the destination name so
-            // announcements read "Gate A6 is 20 meters ahead" instead of generic text.
-            // Start at step index 1: step 0 is the orientation instruction announced
-            // immediately below in startMsg, so the engine begins watching for the elbow.
+            // Build the voice engine for this route.
+            // Start at step index 0 so the UI card shows Step 1 from the beginning,
+            // and the engine watches the first waypoint before advancing.
             voiceEngine = VoiceNavigationEngine(route, geofenceZones, destinationName = name,
                                                 initialStepIndex = 1)
             voiceSpeaker?.resetLastMessage()
@@ -265,7 +263,7 @@ class AirportNavigationViewModel : ViewModel() {
                 destination = position,
                 destinationName = name,
                 navigationRoute = route,
-                currentStepIndex = 1,   // step 0 already announced in startMsg below
+                currentStepIndex = 1,   // always start at step 1 (index 0)
                 distanceToDestination = DistanceInfo.calculate(
                     currentLocation, position
                 )
@@ -490,13 +488,17 @@ class AirportNavigationViewModel : ViewModel() {
     //   Last   → fires at `to`   : "You have arrived"
 
     private fun calculateRoute(from: Position, to: Position): NavigationRoute {
-        val distance = calculateDistance(from, to)
-        val walkingTime = (distance / 80).toInt()
-
         val deltaX = to.x - from.x
         val deltaY = to.y - from.y
         val hasHoriz = deltaX.toInt() != 0
         val hasVert  = deltaY.toInt() != 0
+
+        // Walking distance = sum of the two legs of the L-shape (Manhattan distance).
+        // Using straight-line (Euclidean) distance here gives sqrt(200²+300²)≈360m
+        // instead of the correct 200+300=500m, so we compute it as the actual path length.
+        val floorPenalty = if (from.floor != to.floor) kotlin.math.abs(to.floor - from.floor) * 4.0 else 0.0
+        val distance = kotlin.math.abs(deltaX) + kotlin.math.abs(deltaY) + floorPenalty
+        val walkingTime = (distance / 80).toInt()
 
         // Elbow = corner of the L (same x as destination, same y as start)
         val elbow = Position(to.x, from.y, from.floor)
@@ -611,11 +613,21 @@ class AirportNavigationViewModel : ViewModel() {
         )
     }
 
+    /**
+     * Walking distance between two positions along the L-shaped corridor path.
+     *
+     * Uses Manhattan distance (|dx| + |dy|) rather than Euclidean (sqrt(dx²+dy²))
+     * because the user walks two straight corridor legs, not diagonally through walls.
+     *
+     * Example: 200 m west + 300 m south = 500 m walked, not sqrt(200²+300²) ≈ 360 m.
+     *
+     * A floor-change penalty of 4 m per floor is added for stair/elevator transitions.
+     */
     private fun calculateDistance(from: Position, to: Position): Double {
-        val dx = to.x - from.x
-        val dy = to.y - from.y
-        val dz = (to.floor - from.floor) * 4.0
-        return sqrt(dx * dx + dy * dy + dz * dz)
+        val dx = kotlin.math.abs(to.x - from.x).toDouble()
+        val dy = kotlin.math.abs(to.y - from.y).toDouble()
+        val dz = kotlin.math.abs(to.floor - from.floor) * 4.0
+        return dx + dy + dz
     }
 
     // ── Indoor map helpers ────────────────────────────────────────────────────

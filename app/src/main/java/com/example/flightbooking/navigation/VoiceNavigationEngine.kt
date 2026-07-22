@@ -336,6 +336,7 @@ class VoiceNavigationEngine(
             NavigationIcon.ELEVATOR          -> "Take the elevator to the next floor."
             NavigationIcon.ESCALATOR_UP      -> "Take the escalator up."
             NavigationIcon.ESCALATOR_DOWN    -> "Take the escalator down."
+            NavigationIcon.TURN_AROUND       -> "Turn around now."
             NavigationIcon.DESTINATION       -> {
                 // Fallback — normally handled in advanceStep() with the destination name.
                 val nameClause = if (destinationName.isNotEmpty()) " at $destinationName" else ""
@@ -366,6 +367,7 @@ class VoiceNavigationEngine(
             NavigationIcon.ELEVATOR          -> "Elevator in $distanceMeters meters."
             NavigationIcon.ESCALATOR_UP,
             NavigationIcon.ESCALATOR_DOWN    -> "Escalator in $distanceMeters meters."
+            NavigationIcon.TURN_AROUND    -> "Turn around now."
             else                             -> "Continue for $distanceMeters meters."
         }
     }
