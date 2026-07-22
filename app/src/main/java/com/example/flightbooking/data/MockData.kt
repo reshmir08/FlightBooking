@@ -10,7 +10,7 @@ import java.time.Duration
  * Mock data for testing and development
  */
 object MockData {
-    
+
     // Airlines
     val airlines = listOf(
         Airline("AC", "Air Canada", null, 4.2f),
@@ -20,7 +20,7 @@ object MockData {
         Airline("BA", "British Airways", null, 4.3f),
         Airline("LH", "Lufthansa", null, 4.4f)
     )
-    
+
     // Airports
     val airports = listOf(
         Airport("YYZ", "Toronto Pearson International", "Toronto", "Canada", 43.6777, -79.6248),
@@ -32,7 +32,7 @@ object MockData {
         Airport("SIN", "Singapore Changi", "Singapore", "Singapore", 1.3644, 103.9915),
         Airport("HND", "Tokyo Haneda", "Tokyo", "Japan", 35.5494, 139.7798)
     )
-    
+
     // Sample flights
     @RequiresApi(Build.VERSION_CODES.O)
     fun generateSampleFlights(
@@ -41,7 +41,7 @@ object MockData {
         departureDate: LocalDateTime = LocalDateTime.now().plusDays(7)
     ): List<Flight> {
         val flights = mutableListOf<Flight>()
-        
+
         // Direct flight
         flights.add(
             Flight(
@@ -70,7 +70,7 @@ object MockData {
                 totalDuration = 150
             )
         )
-        
+
         // One-stop flight
         flights.add(
             Flight(
@@ -108,7 +108,7 @@ object MockData {
                 totalDuration = 420 // 7 hours total including layover
             )
         )
-        
+
         // Premium flight
         flights.add(
             Flight(
@@ -138,7 +138,7 @@ object MockData {
                 totalDuration = 165
             )
         )
-        
+
         // Budget flight
         flights.add(
             Flight(
@@ -166,10 +166,10 @@ object MockData {
                 totalDuration = 150
             )
         )
-        
+
         return flights
     }
-    
+
     // Terminal and amenities data
     fun getSampleTerminal(): Terminal {
         val terminal = Terminal(
@@ -181,7 +181,7 @@ object MockData {
         )
         return terminal
     }
-    
+
     fun getSampleGates(): List<Gate> {
         return listOf(
             // Terminal 1 - Gates A1-A10
@@ -195,7 +195,7 @@ object MockData {
             Gate("G8", "A8", "T1", Position(450f, 150f, 1), GateStatus.BOARDING, "AC456", "10:15"),
             Gate("G9", "A9", "T1", Position(500f, 150f, 1), GateStatus.MAINTENANCE),
             Gate("G10", "A10", "T1", Position(550f, 150f, 1), GateStatus.AVAILABLE),
-            
+
             // Terminal 1 - Gates B1-B10
             Gate("G11", "B1", "T1", Position(100f, 350f, 1), GateStatus.BOARDING, "AC789", "15:30"),
             Gate("G12", "B2", "T1", Position(150f, 350f, 1), GateStatus.DELAYED, "UA123", "16:00"),
@@ -207,13 +207,13 @@ object MockData {
             Gate("G18", "B8", "T1", Position(450f, 350f, 1), GateStatus.BOARDING, "BA234", "13:20"),
             Gate("G19", "B9", "T1", Position(500f, 350f, 1), GateStatus.AVAILABLE),
             Gate("G20", "B10", "T1", Position(550f, 350f, 1), GateStatus.AVAILABLE),
-            
-        )
+
+            )
     }
-    
+
     fun getSampleAmenities(): List<Amenity> {
         val amenities = mutableListOf<Amenity>()
-        
+
         // Restrooms (multiple locations)
         amenities.addAll(listOf(
             Amenity("REST1", "Restroom - Gate A", AmenityType.RESTROOM, Position(80f, 180f, 1), "T1",
@@ -225,7 +225,7 @@ object MockData {
             Amenity("REST4", "Restroom - Central", AmenityType.RESTROOM, Position(300f, 250f, 1), "T1",
                 "Family restroom", true, true, rating = 4.1f)
         ))
-        
+
         // Coffee Shops
         amenities.addAll(listOf(
             Amenity("CAFE1", "Starbucks", AmenityType.CAFE, Position(120f, 250f, 1), "T1",
@@ -235,7 +235,7 @@ object MockData {
             Amenity("CAFE3", "Second Cup", AmenityType.CAFE, Position(250f, 280f, 2), "T1",
                 "Premium coffee", true, true, "6:00 AM - 10:00 PM", 4.2f)
         ))
-        
+
         // Restaurants & Food Courts
         amenities.addAll(listOf(
             Amenity("FOOD1", "Food Court", AmenityType.FOOD_COURT, Position(200f, 300f, 1), "T1",
@@ -247,7 +247,7 @@ object MockData {
             Amenity("REST3", "Pizza Place", AmenityType.RESTAURANT, Position(150f, 420f, 1), "T1",
                 "Fresh pizza", true, true, "11:00 AM - 11:00 PM", 4.1f)
         ))
-        
+
         // Lounges
         amenities.addAll(listOf(
             Amenity("LOUNGE1", "Maple Leaf Lounge", AmenityType.LOUNGE, Position(250f, 200f, 1), "T1",
@@ -257,7 +257,7 @@ object MockData {
             Amenity("LOUNGE3", "Plaza Premium Lounge", AmenityType.LOUNGE, Position(350f, 380f, 1), "T1",
                 "Pay-per-use lounge", true, true, "24/7", 4.5f)
         ))
-        
+
         // Charging Stations
         amenities.addAll(listOf(
             Amenity("CHARGE1", "Charging Station A", AmenityType.CHARGING_STATION, Position(130f, 180f, 1), "T1",
@@ -271,7 +271,7 @@ object MockData {
             Amenity("CHARGE5", "Charging Station E", AmenityType.CHARGING_STATION, Position(300f, 280f, 2), "T1",
                 "Upper level charging", true, true, rating = 4.0f)
         ))
-        
+
         // Other Services
         amenities.addAll(listOf(
             Amenity("ATM1", "ATM", AmenityType.ATM, Position(180f, 280f, 1), "T1",
@@ -293,7 +293,7 @@ object MockData {
             Amenity("PLAY1", "Kids Play Area", AmenityType.PLAY_AREA, Position(480f, 350f, 1), "T1",
                 "Supervised play area for children", false, true, "6:00 AM - 10:00 PM", 4.2f)
         ))
-        
+
         return amenities
     }
 

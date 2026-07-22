@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -27,7 +28,17 @@ import com.example.flightbooking.data.models.AirportNavigationState
 import com.example.flightbooking.data.models.FloorPlan
 import com.example.flightbooking.ui.map.IndoorMapView
 import com.example.flightbooking.viewmodel.AirportNavigationViewModel
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.Dp
 import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.sin
 
 /**
  * NavigationScreen
@@ -152,10 +163,17 @@ fun NavigationScreen(
             // ── Row 1: Top instruction card ───────────────────────────────────
             TopInstructionCard(
                 state    = state,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
             )
 
-            // ── Row 2: Map + overlays ─────────────────────────────────────────
+            // ── Row 2: Static compass rose ───────────────────────────────────
+            StaticCompassRose(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            )
+
+            // ── Row 2b: Map + overlays ─────────────────────────────────────────
             Box(modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -573,6 +591,102 @@ private fun BottomInfoBar(
                     }
                 }
             }
+        }
+    }
+}
+
+// ── Static Compass Rose ────────────────────────────────────────────────────────
+
+/**
+ * StaticCompassRose
+ *
+ * A fixed, non-rotating compass that always shows N at top, E right, S bottom, W left —
+ * exactly matching the reference image: blue outer ring, N in red, E/S/W in dark grey,
+ * 8 tick marks at 45° intervals.
+ *
+ * This is purely decorative/orientation aid. It does NOT rotate with user heading.
+ */
+@Composable
+private fun StaticCompassRose(
+    modifier: Modifier = Modifier,
+    size: Dp = 72.dp
+) {
+    Box(
+        modifier         = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = androidx.compose.ui.Modifier.size(size)) {
+            val cx     = this.size.width  / 2f
+            val cy     = this.size.height / 2f
+            val radius = (this.size.minDimension / 2f) * 0.92f
+
+            drawStaticCompass(cx, cy, radius)
+        }
+    }
+}
+
+private fun DrawScope.drawStaticCompass(cx: Float, cy: Float, radius: Float) {
+    val ringColor = Color(0xFF3A5FA0)   // blue ring — matches reference
+    val bgColor   = Color(0xFFF8F9FF)   // near-white fill inside circle
+    val tickColor = Color(0xFF888888)   // subtle grey ticks
+    val textDark  = Color(0xFF2B2B2B)   // E, S, W labels
+    val textRed   = Color(0xFFCC2222)   // N label in red
+
+    // ── Background circle ──────────────────────────────────────────────────────
+    drawCircle(color = bgColor, radius = radius, center = Offset(cx, cy))
+
+    // ── Outer blue ring ────────────────────────────────────────────────────────
+    drawCircle(
+        color  = ringColor,
+        radius = radius,
+        center = Offset(cx, cy),
+        style  = Stroke(width = radius * 0.08f)
+    )
+
+    // ── 8 tick marks at 45° intervals ─────────────────────────────────────────
+    val tickOuter = radius * 0.88f
+    val tickInner = radius * 0.76f
+    for (i in 0 until 8) {
+        val angleRad = Math.toRadians((i * 45.0) - 90.0)   // -90° → index 0 = top = North
+        val ox = cx + cos(angleRad).toFloat() * tickOuter
+        val oy = cy + sin(angleRad).toFloat() * tickOuter
+        val ix = cx + cos(angleRad).toFloat() * tickInner
+        val iy = cy + sin(angleRad).toFloat() * tickInner
+        drawLine(
+            color       = tickColor,
+            start       = Offset(ix, iy),
+            end         = Offset(ox, oy),
+            strokeWidth = radius * 0.045f
+        )
+    }
+
+    // ── Cardinal labels: N (top/red), E (right), S (bottom), W (left) ─────────
+    data class Dir(val label: String, val angleDeg: Double, val isNorth: Boolean = false)
+    val dirs = listOf(
+        Dir("N", -90.0, isNorth = true),
+        Dir("E",   0.0),
+        Dir("S",  90.0),
+        Dir("W", 180.0)
+    )
+
+    val labelR      = radius * 0.54f
+    val labelSizePx = radius * 0.40f
+
+    drawIntoCanvas { canvas ->
+        dirs.forEach { dir ->
+            val rad  = Math.toRadians(dir.angleDeg)
+            val tx   = cx + cos(rad).toFloat() * labelR
+            val ty   = cy + sin(rad).toFloat() * labelR
+            val paint = android.graphics.Paint().apply {
+                color          = if (dir.isNorth) textRed.toArgb() else textDark.toArgb()
+                textSize       = labelSizePx
+                textAlign      = android.graphics.Paint.Align.CENTER
+                isAntiAlias    = true
+                isFakeBoldText = true
+                typeface       = android.graphics.Typeface.DEFAULT_BOLD
+            }
+            // Shift down by ~35 % of text size so letter sits centred on its radial point
+            canvas.nativeCanvas.drawText(dir.label, tx, ty + labelSizePx * 0.35f, paint)
         }
     }
 }

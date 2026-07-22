@@ -705,10 +705,10 @@ class AirportNavigationViewModel : ViewModel() {
 
     companion object {
         /** Milliseconds between each simulated position tick in demo mode. */
-        const val DEMO_TICK_MS = 1500L
+        const val DEMO_TICK_MS = 1000L
 
         /** Meters advanced per simulation tick. */
-        const val DEMO_STEP_METERS = 5f
+        const val DEMO_STEP_METERS = 10f
     }
 }
 

@@ -130,21 +130,6 @@ fun IndoorMapView(
                 modifier  = Modifier.fillMaxSize()
             )
         }
-
-        // ── Re-centre FAB ─────────────────────────────────────────────────────
-        FloatingActionButton(
-            onClick = onRecentreRequested,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(12.dp),
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor   = MaterialTheme.colorScheme.primary
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_search),
-                contentDescription = "Re-centre map"
-            )
-        }
     }
 }
 
